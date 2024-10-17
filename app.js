@@ -2,36 +2,41 @@ const express = require("express");
 const app = express();
 const PORT = 3000;
 
-// Middleware to parse JSON
-app.use(express.json());
+app.use(express.json()); // To parse JSON requests
 
-// API Endpoint to return data
-app.get("/data", (req, res) => {
-  const responseData = {
-    message: "Hello, this is your API!",
-    author: "Your Name",
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(responseData); // Return JSON data
-});
-
-// API Endpoint to report errors
-app.post("/report-error", (req, res) => {
-  const { message, url, timestamp } = req.body;
-
-  // Log error details to the console (or save to a file/database)
-  console.error(`Error reported from ${url} at ${timestamp}: ${message}`);
-
-  res.status(200).json({ success: true, message: "Error logged successfully" });
-});
-
-// Error Handling for Non-existing Routes
-app.use((req, res, next) => {
-  res.status(404).json({ error: "Not Found" });
-});
-
-// Start the server
 app.listen(PORT, () => {
-  console.log(`API is running on http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
+});
+const { v4: uuidv4 } = require("uuid");
+
+let apiKeys = {}; // Store API keys in-memory (you can use a database for persistence)
+
+app.post("/generate-api-key", (req, res) => {
+  const newKey = uuidv4(); // Generate unique key
+  apiKeys[newKey] = { allowedRequests: 1000 }; // Example of limiting requests
+  res.json({ apiKey: newKey });
+});
+app.post("/log-error", (req, res) => {
+  const apiKey = req.headers["x-api-key"]; // Expect API key in headers
+  if (!apiKeys[apiKey]) {
+    return res.status(401).json({ message: "Invalid API Key" });
+  }
+
+  const { errorDetails } = req.body;
+
+  // Simple log (you can store it in a file or database)
+  console.log("Error logged:", errorDetails);
+
+  // Optionally, decrease the allowed request count
+  apiKeys[apiKey].allowedRequests -= 1;
+
+  res.status(200).json({ message: "Error logged successfully" });
+});
+app.use((req, res, next) => {
+  const apiKey = req.headers["x-api-key"];
+  if (apiKeys[apiKey] && apiKeys[apiKey].allowedRequests > 0) {
+    next();
+  } else {
+    res.status(403).json({ message: "API Key is invalid or quota exceeded" });
+  }
 });

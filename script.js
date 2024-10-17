@@ -27,54 +27,30 @@ menuIcon.onclick = () => {
 closeIcon.addEventListener("click", function () {
   navbar.classList.toggle("show-navbar");
 });
+require("dotenv").config();
+const apiKey = process.env.API_KEY;
 
-// URL of the API where errors will be reported
-const errorReportingApi = "http://localhost:3000/report-error"; // Replace with your server URL
+async function fetchData() {
+  try {
+    const response = await fetch("https://api.example.com/data");
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const data = await response.json();
+    console.log(data);
+  } catch (error) {
+    console.error("Network error:", error.message);
+    logErrorToServer(error.message);
+  }
+}
 
-// Function to report errors to the API
-function reportNetworkError(errorMessage) {
-  const errorData = {
-    message: errorMessage,
-    url: window.location.href, // URL where the error occurred
-    timestamp: new Date().toISOString(),
-  };
-
-  // Send error report to your API
-  fetch(errorReportingApi, {
+function logErrorToServer(errorDetails) {
+  fetch("http://localhost:3000/log-error", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "x-api-key": "dc2615d2-330f-4729-a5ab-29a473a32d52",
     },
-    body: JSON.stringify(errorData),
-  }).catch((err) => {
-    console.error("Failed to report error:", err);
+    body: JSON.stringify({ errorDetails }),
   });
 }
-
-// Detect general network errors (e.g., failed fetch requests)
-window.addEventListener("error", (event) => {
-  if (event.error && event.error.message === "Failed to fetch") {
-    reportNetworkError("Network error: Failed to fetch resources.");
-  }
-});
-
-// Detect if the user goes offline
-window.addEventListener("offline", () => {
-  reportNetworkError("Network error: User is offline.");
-});
-
-async function testNetwork() {
-  try {
-    const response = await fetch("https://willyhavertz.github.io/");
-    if (!response.ok) {
-      reportNetworkError(`Network error: HTTP status ${response.status}`);
-    }
-  } catch (error) {
-    reportNetworkError("Network error: Failed to reach the website.");
-  }
-}
-
-// Test network connectivity after page load
-window.onload = () => {
-  testNetwork();
-};
