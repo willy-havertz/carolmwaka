@@ -300,7 +300,7 @@ span {
 }
 .service-box {
   background-color: var(--main-color);
-  height: 300px;
+  height: 390px;
   border-radius: 3rem;
   cursor: pointer;
   padding: 2rem;
@@ -345,6 +345,9 @@ span {
   .services-container {
     grid-template-columns: repeat(2, 1fr);
   }
+  .service-box {
+    height: 300px;
+  }
 }
 @media (max-width: 895px) {
   .services h2 {
@@ -361,6 +364,11 @@ span {
   .service-box {
     background-color: var(--bg-color);
     border: 1px solid var(--main-color);
+  }
+}
+@media (max-width: 362px) {
+  .service-box {
+    height: 350px;
   }
 }
 /* BELOW ARE THE STYLES FOR THE SKILLS SECTION */
@@ -412,7 +420,7 @@ span {
     padding: 0;
   }
   .skills .container .row {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     margin: 1rem;
     padding: 2rem 0.2rem 2rem 0.2rem;
     gap: 1rem;
